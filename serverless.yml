@@ -1,0 +1,191 @@
+service: unigamer-service
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  profile: unigamer
+  region: eu-west-1
+  lambdaHashingVersion: 20201221
+  timeout: 30
+  memorySize: 256
+  iamRoleStatements:
+    # - Effect: Allow
+    #   Action: execute-api:Invoke
+    #   Resource:
+    #     - '*'
+    - Effect: 'Allow'
+      Action:
+        - 's3:PutObject'
+      Resource:
+        Fn::Join:
+          - ''
+          - - 'arn:aws:s3:::'
+            - Ref: UploadBucket
+    - Effect: Allow
+      Action:
+        - 'dynamodb:PutItem'
+        - 'dynamodb:GetItem'
+        - 'dynamodb:DeleteItem'
+        - 'dynamodb:Scan'
+      Resource:
+        - Fn::GetAtt: [MessageTable, Arn]
+    - Effect: Allow
+      Action:
+        - 'execute-api:ManageConnections'
+      Resource:
+        - 'arn:aws:execute-api:*:*:**/@connections/*'
+
+  environment:
+    MEDIA_BUCKET_NAME: ${self:custom.bucketName}
+    MONGO_URL: ${env:MONGO_URL}
+    SESSION_SECRET: ${env:SESSION_SECRET}
+    GOOGLE_RECAPTCHA_SECRET_KEY: ${env:GOOGLE_RECAPTCHA_SECRET_KEY}
+    SENDER_EMAIL_ADDRESS: ${env:SENDER_EMAIL_ADDRESS}
+    MAILING_SERVICE_CLIENT_ID: ${env:MAILING_SERVICE_CLIENT_ID}
+    MAILING_SERVICE_CLIENT_SECRET: ${env:MAILING_SERVICE_CLIENT_SECRET}
+    MAILING_SERVICE_REFRESH_TOKEN: ${env:MAILING_SERVICE_REFRESH_TOKEN}
+    EXECUTION_CONTEXT: ${env:EXECUTION_CONTEXT}
+    MAILING_SMTP_USERNAME: ${env:MAILING_SMTP_USERNAME}
+    MAILING_SMTP_PASSWORD: ${env:MAILING_SMTP_PASSWORD}
+    MAILING_SMTP_HOST: ${env:MAILING_SMTP_HOST}
+    FRONTEND_URL: ${env:FRONTEND_URL}
+    CONNECTION_DB_TABLE: ${self:resources.Resources.MessageTable.Properties.TableName}
+
+plugins:
+  - serverless-domain-manager
+  - serverless-plugin-typescript
+  - serverless-plugin-optimize
+  - serverless-offline
+  - serverless-dotenv-plugin
+  - serverless-plugin-warmup
+
+package:
+  individually: true
+  include:
+    - src/mail/templates/**
+    - src/mail/assets/**
+
+custom:
+  bucketName: unigamer-staging-dev
+  customDomain:
+    rest:
+      domainName: staging-service.unigamer.com
+      stage: staging
+      basePath: ''
+      certificateName: '*.unigamer.com'
+      createRoute53Record: true
+      endpointType: 'regional'
+      securityPolicy: tls_1_2
+    websocket:
+      domainName: ws-staging.unigamer.com
+      stage: staging
+      basePath: ''
+      certificateName: '*.unigamer.com'
+      createRoute53Record: true
+      endpointType: 'regional'
+      securityPolicy: tls_1_2
+  warmup:
+    prewarm: true
+    officeHoursWarmer:
+      enabled: true
+      events:
+        - schedule: cron(0/5 8-17 ? * MON-FRI *)
+      concurrency: 10
+    outOfOfficeHoursWarmer:
+      enabled: true
+      events:
+        - schedule: cron(0/5 0-7 ? * MON-FRI *)
+        - schedule: cron(0/5 18-23 ? * MON-FRI *)
+        - schedule: cron(0/5 * ? * SAT-SUN *)
+      concurrency: 10
+    testWarmer:
+      enabled: false
+
+
+  optimize:
+    external: ['swagger-ui-dist']
+    includePaths: ['src/mail/templates', 'src/mail/assets']
+
+functions:
+  main:
+    handler: src/serverless.handler
+    events:
+      - http:
+          method: any
+          path: /{any+}
+    reservedConcurrency: 200 # optional, reserved concurrency limit for this function. By default, AWS uses account concurrency limit
+    provisionedConcurrency: 20
+    warmup: true
+  connectHandler:
+    handler: src/aws/websocket.connectHandler
+    events:
+      - websocket:
+          route: $connect
+    warmup: false
+  disconnectHandler:
+    handler: src/aws/websocket.disconnectHandler
+    events:
+      - websocket:
+          route: $disconnect
+    warmup: false
+  broadcastHandler:
+    handler: src/aws/websocket.broadcastHandler
+    events:
+      - websocket:
+          route: broadcast
+    warmup: false
+  notificationHandler:
+    handler: src/aws/websocket.notificationHandler
+    events:
+      - websocket:
+          route: notify
+    warmup: false
+
+resources:
+  Resources:
+    MessageTable:
+      Type: 'AWS::DynamoDB::Table'
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: 'connectionId'
+            AttributeType: 'S'
+        KeySchema:
+          - AttributeName: 'connectionId'
+            KeyType: 'HASH'
+        BillingMode: PAY_PER_REQUEST
+        TableName: UniGamerStaging
+    UploadBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:custom.bucketName}
+        AccessControl: Private
+        PublicAccessBlockConfiguration:
+          BlockPublicAcls: false
+          BlockPublicPolicy: false
+          IgnorePublicAcls: false
+          RestrictPublicBuckets: false
+        CorsConfiguration:
+          CorsRules:
+            - AllowedMethods:
+                - GET
+                - PUT
+                - POST
+                - HEAD
+              AllowedOrigins:
+                - '*'
+              AllowedHeaders:
+                - '*'
+    UploadBucketPolicy:
+      Type: 'AWS::S3::BucketPolicy'
+      Properties:
+        PolicyDocument:
+          Statement:
+            - Sid: PublicReadForGetBucketObjects
+              Effect: Allow
+              Principal: '*'
+              Action:
+                - 's3:GetObject'
+                - 's3:PutObject'
+              Resource: arn:aws:s3:::${self:custom.bucketName}/*
+        Bucket:
+          Ref: UploadBucket
