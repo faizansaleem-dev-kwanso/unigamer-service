@@ -41,6 +41,11 @@ export class GamesController {
     return this.gamesService.search(query);
   }
 
+  @Get('allgames')
+  allGames(@Query() getGamesDto: GetGamesDto) {
+    return this.gamesService.allGames(getGamesDto);
+  }
+
   @Get('suggestions')
   suggestions(@ReqUser() user) {
     return this.gamesService.suggestions(user);
@@ -124,5 +129,10 @@ export class GamesController {
   @UseGuards(AuthenticatedGuard)
   unfollow(@Param('id') id: string, @ReqUser() user: User) {
     return this.gamesService.unfollowGame(id, user);
+  }
+
+  @Get(':id/stats')
+  gameStats(@Param('id') id: string) {
+    return this.gamesService.gameStats(id);
   }
 }

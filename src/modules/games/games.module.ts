@@ -6,9 +6,7 @@ import MongoAggregatePaginate from 'mongoose-aggregate-paginate-v2';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Game, GameSchema } from './entities/game.entity';
 import { FollowModule } from '../follows/follows.module';
-import { ConfigService } from 'aws-sdk';
-import { ConfigModule } from '@nestjs/config';
-import configuration from '../../config/configuration';
+import { Follow, FollowSchema } from '../follows/entities/follow.entity';
 @Module({
   imports: [
     MongooseModule.forFeatureAsync([
@@ -16,6 +14,14 @@ import configuration from '../../config/configuration';
         name: Game.name,
         useFactory: () => {
           const schema = GameSchema;
+          schema.plugin(MongoAggregatePaginate);
+          return schema;
+        },
+      },
+      {
+        name: Follow.name,
+        useFactory: () => {
+          const schema = FollowSchema;
           schema.plugin(MongoAggregatePaginate);
           return schema;
         },

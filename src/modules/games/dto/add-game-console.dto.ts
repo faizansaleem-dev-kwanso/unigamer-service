@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString } from 'class-validator';
+import { IsOptional, IsString } from 'class-validator';
+import { Game } from '../entities/game.entity';
 
 export class AddGameConsoleDto {
   @ApiProperty({
@@ -7,4 +8,16 @@ export class AddGameConsoleDto {
   })
   @IsString()
   console: string;
+}
+
+export class GameWithStats extends Game {
+  @IsOptional()
+  @IsString()
+  followers: number;
+  @IsOptional()
+  @IsString()
+  followee: number;
+  @IsOptional()
+  @IsString()
+  posts: number;
 }

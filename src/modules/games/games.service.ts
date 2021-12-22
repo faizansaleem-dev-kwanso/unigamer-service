@@ -14,11 +14,14 @@ import { GetGamesDto } from './dto/get-games.dto';
 import { UpdateGameDto } from './dto/update-game.dto';
 import { Game } from './entities/game.entity';
 import { ObjectId } from 'mongodb';
+import { Follow } from '../follows/entities/follow.entity';
 
 @Injectable()
 export class GamesService {
   constructor(
     @InjectModel(Game.name) private readonly gameRegularModel: Model<Game>,
+    @InjectModel(Follow.name)
+    private readonly followRegularModel: Model<Follow>,
     @InjectModel(Game.name)
     private readonly gameModel: AggregatePaginateModel<Game>,
     private readonly followService: FollowService,
@@ -203,6 +206,14 @@ export class GamesService {
     return games[0];
   }
 
+  async gameStats(_id: string) {
+    return {
+      followers: 100,
+      followee: 10,
+      posts: 100,
+    };
+  }
+
   update(_id: string, updateGameDto: UpdateGameDto) {
     return this.gameModel.findOneAndUpdate(
       { _id },
@@ -317,5 +328,53 @@ export class GamesService {
     ]);
     const games = await this.gameModel.aggregatePaginate(aggregate, options);
     return games;
+  }
+
+  async allGames(getGamesDto: GetGamesDto) {
+    const {
+      page = 1,
+      filter = '{}',
+      limit = 10,
+      sortBy = 'popularity',
+    } = getGamesDto;
+    const query = mongoParser(filter);
+    const aggregate = this.gameModel.aggregate([
+      {
+        $match: { ...query },
+      },
+    ]);
+
+    let sort: Record<string, any> = { followersCount: -1 };
+    if (sortBy === 'rating') {
+      sort = { avreageRating: -1 };
+    }
+    if (sortBy === 'popularity') {
+      sort = { followersCount: -1 };
+    }
+    if (sortBy === 'newest') {
+      sort = { releaseDate: -1 };
+    }
+    const options: PaginateOptions = {
+      page: page,
+      limit: limit,
+      populate: 'followers followersCount',
+      sort,
+    };
+    const response = await this.gameModel.aggregatePaginate(aggregate, options);
+    const games = response.docs || [];
+
+    // for (const game of games) {
+    //   games.push({
+    //     ...game,
+    //     followers: await this,
+    //     folowee: 10,
+    //     posts: 40,
+    //   });
+    // }
+    const { docs, ..._response } = response;
+    return {
+      ..._response,
+      games,
+    };
   }
 }
