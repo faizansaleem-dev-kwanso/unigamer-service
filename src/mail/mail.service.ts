@@ -12,32 +12,38 @@ export class MailService {
   ) {}
 
   async sendUserConfirmation(user: User) {
-    const link = `${this.configService.get<string>(
-      'FRONTEND_URL',
-    )}/auth/verify?token=${user.token}&id=${user._id}`;
-    await this.mailerService.sendMail({
-      to: user.email,
-      subject: 'Please confirm your Email account',
-      text: `Please verify here: ${link}`,
-      template: getPathForTemplate(
+    try {
+      const link = `${this.configService.get<string>(
+        'FRONTEND_URL',
+      )}/auth/verify?token=${user.token}&id=${user._id}`;
+      const template = getPathForTemplate(
         'verification',
         this.configService.get<string>('EXECUTION_CONTEXT'),
-      ),
-      context: {
-        // ✏️ filling curly brackets with content
-        link,
-      },
-      attachments: [
-        {
-          filename: 'maillogo.png',
-          cid: 'logo',
-          path: getPathForImage(
-            'maillogo.png',
-            this.configService.get<string>('EXECUTION_CONTEXT'),
-          ),
+      );
+      await this.mailerService.sendMail({
+        to: user.email,
+        subject: 'Please confirm your Email account',
+        text: `Please verify here: ${link}`,
+        template: template,
+        context: {
+          // ✏️ filling curly brackets with content
+          link,
         },
-      ],
-    });
+        attachments: [
+          {
+            filename: 'maillogo.png',
+            cid: 'logo',
+            path: getPathForImage(
+              'maillogo.png',
+              this.configService.get<string>('EXECUTION_CONTEXT'),
+            ),
+          },
+        ],
+      });
+    } catch (error) {
+      console.log('error while sending email', error);
+      throw error;
+    }
   }
 
   async sendResetPasswordEmail(user: User) {

@@ -15,6 +15,8 @@ import { UpdateGameDto } from './dto/update-game.dto';
 import { Game } from './entities/game.entity';
 import { ObjectId } from 'mongodb';
 import { Follow } from '../follows/entities/follow.entity';
+import { Post } from '../posts/entities/post.entity';
+import { Review } from '../reviews/entities/review.entity';
 
 @Injectable()
 export class GamesService {
@@ -22,6 +24,10 @@ export class GamesService {
     @InjectModel(Game.name) private readonly gameRegularModel: Model<Game>,
     @InjectModel(Follow.name)
     private readonly followRegularModel: Model<Follow>,
+    @InjectModel(Follow.name)
+    private readonly postRegularModal: Model<Post>,
+    @InjectModel(Follow.name)
+    private readonly reviewRegularModal: Model<Review>,
     @InjectModel(Game.name)
     private readonly gameModel: AggregatePaginateModel<Game>,
     private readonly followService: FollowService,
@@ -207,10 +213,20 @@ export class GamesService {
   }
 
   async gameStats(_id: string) {
+    const followers = await this.followRegularModel.countDocuments({
+      followee: _id,
+    });
+    const posts = await this.postRegularModal.countDocuments({
+      postedTo: _id,
+    });
+    const reviews = await this.reviewRegularModal.countDocuments({
+      game: _id,
+    });
+
     return {
-      followers: 100,
-      followee: 10,
-      posts: 100,
+      followers: followers || 0,
+      reviews: reviews || 0,
+      posts: posts || 0,
     };
   }
 

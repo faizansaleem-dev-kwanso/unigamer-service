@@ -7,6 +7,8 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { Game, GameSchema } from './entities/game.entity';
 import { FollowModule } from '../follows/follows.module';
 import { Follow, FollowSchema } from '../follows/entities/follow.entity';
+import { Post, PostSchema } from '../posts/entities/post.entity';
+import { Review, ReviewSchema } from '../reviews/entities/review.entity';
 @Module({
   imports: [
     MongooseModule.forFeatureAsync([
@@ -22,6 +24,22 @@ import { Follow, FollowSchema } from '../follows/entities/follow.entity';
         name: Follow.name,
         useFactory: () => {
           const schema = FollowSchema;
+          schema.plugin(MongoAggregatePaginate);
+          return schema;
+        },
+      },
+      {
+        name: Post.name,
+        useFactory: () => {
+          const schema = PostSchema;
+          schema.plugin(MongoAggregatePaginate);
+          return schema;
+        },
+      },
+      {
+        name: Review.name,
+        useFactory: () => {
+          const schema = ReviewSchema;
           schema.plugin(MongoAggregatePaginate);
           return schema;
         },

@@ -14,6 +14,7 @@ import { ResetPasswordDto } from './dto/reset-password.dto';
 import { VerifyAccountDto } from './dto/verify-account.dto';
 import { MailService } from '../../mail/mail.service';
 import { User } from '../users/entities/user.entity';
+import { CreateUserDto } from '../users/dto/create-user.dto';
 
 @Injectable()
 export class AuthService {
@@ -43,24 +44,28 @@ export class AuthService {
   }
 
   async signUp(authSignUpDto: AuthSignUpDto) {
-    const { email, username } = authSignUpDto;
-    // check if username or email already exisist
-    const User = await this.userService.findOneByQuery({
-      $or: [{ email }, { username }],
-    });
-    if (User)
-      throw new HttpException(
-        'That Email or Username are already taken.',
-        HttpStatus.CONFLICT,
-      );
-    const hashedPassword = bcrypt.hashSync(authSignUpDto.password, 10);
-    const token = bcrypt.hashSync(`${Date.now}`, bcrypt.genSaltSync(8));
-    const { password, ...user } = await this.userService.create({
-      ...authSignUpDto,
-      password: hashedPassword,
-      token,
-    });
-    return user;
+    try {
+      const { email, username } = authSignUpDto;
+      // check if username or email already exisist
+      const User = await this.userService.findOneByQuery({
+        $or: [{ email }, { username }],
+      });
+      if (User)
+        throw new HttpException(
+          'That Email or Username are already taken.',
+          HttpStatus.CONFLICT,
+        );
+      const hashedPassword = bcrypt.hashSync(authSignUpDto.password, 10);
+      const token = bcrypt.hashSync(`${Date.now}`, bcrypt.genSaltSync(8));
+      const createUserInput: CreateUserDto = {
+        ...authSignUpDto,
+        password: hashedPassword,
+        token,
+      };
+      return await this.userService.create(createUserInput);
+    } catch (error) {
+      console.log('error', error);
+    }
   }
 
   async forgotPassword(forgotPasswordDto: ForgotPasswordDto) {

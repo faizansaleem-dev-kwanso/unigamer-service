@@ -8,7 +8,7 @@ export const getPathForTemplate = (templatePath: string, env = '') => {
       `src/mail/templates/${templatePath}`,
     );
   }
-  return `./${templatePath}`;
+  return `./tamplates/${templatePath}`;
 };
 
 export const getPathForImage = (filename: string, env = '') => {
