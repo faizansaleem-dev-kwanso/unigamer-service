@@ -28,4 +28,14 @@ export class CreateUserDto {
 
   @ApiHideProperty()
   readonly token: string;
+
+  @ApiProperty({
+    description: 'Sub for the account',
+  })
+  readonly sub: string;
+
+  @ApiProperty({
+    description: 'Email verification flag for the account',
+  })
+  readonly email_verified: boolean;
 }

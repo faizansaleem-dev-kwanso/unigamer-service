@@ -39,7 +39,7 @@ export class UsersService {
     const userCreatedEvent = new UserCreatedEvent();
     userCreatedEvent.user = createdUser;
     // FIXME: Move the email sending JOB to SQS and consume via another Lambda email consumer
-    await this.mailService.sendUserConfirmation(createdUser);
+    // await this.mailService.sendUserConfirmation(createdUser);
     return createdUser.toObject();
   }
 

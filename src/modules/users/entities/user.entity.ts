@@ -40,6 +40,12 @@ export class User extends Document {
 
   @Prop()
   connected: number;
+
+  @Prop()
+  sub: string;
+
+  @Prop()
+  email_verified: boolean;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
