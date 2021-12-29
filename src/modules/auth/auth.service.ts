@@ -55,14 +55,14 @@ export class AuthService {
           'That Email or Username are already taken.',
           HttpStatus.CONFLICT,
         );
-      const hashedPassword = bcrypt.hashSync(authSignUpDto.password, 10);
-      const token = bcrypt.hashSync(`${Date.now}`, bcrypt.genSaltSync(8));
-      const createUserInput: CreateUserDto = {
-        ...authSignUpDto,
-        password: hashedPassword,
-        token,
-      };
-      return await this.userService.create(createUserInput);
+      // const hashedPassword = bcrypt.hashSync(authSignUpDto.password, 10);
+      // const token = bcrypt.hashSync(`${Date.now}`, bcrypt.genSaltSync(8));
+      // const createUserInput: CreateUserDto = {
+      //   ...authSignUpDto,
+      //   // password: hashedPassword,
+      //   // token,
+      // };
+      // return await this.userService.create(createUserInput);
     } catch (error) {
       console.log('error', error);
     }
