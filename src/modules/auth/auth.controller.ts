@@ -27,6 +27,13 @@ import { ReqUser } from '../../common/decorators/user.decorator';
 import { User } from '../users/entities/user.entity';
 import { UsersService } from '../users/users.service';
 
+interface IUserRequest extends Request {
+  user: {
+    email: string;
+    _id: string;
+  };
+}
+
 @ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
@@ -45,8 +52,11 @@ export class AuthController {
 
   @Get('me')
   @UseGuards(AuthenticatedGuard)
-  getUser(@ReqUser() user: User) {
-    return this.userService.findOne(user._id);
+  getUser(@Req() request: IUserRequest) {
+    const {
+      user: { _id },
+    } = request;
+    return this.userService.findById(_id);
   }
 
   @Post('signup')
