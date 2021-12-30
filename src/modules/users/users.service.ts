@@ -250,6 +250,13 @@ export class UsersService {
     );
   }
 
+  updateEmailVerify(email_verify: boolean, email: string) {
+    return this.userModel.updateOne(
+      { email },
+      { email_verified: email_verify },
+    );
+  }
+
   remove(id: number) {
     return `This action removes a #${id} user`;
   }

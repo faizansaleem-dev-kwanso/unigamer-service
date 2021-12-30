@@ -16,33 +16,41 @@ export class AuthenticatedGuard extends AuthGuard('local') {
   async canActivate(context: ExecutionContext) {
     const request = context.switchToHttp().getRequest();
     const accessToken = request.headers.authorization.split(' ')[1];
-    const response = await axios.get(
-      `https://${this.configService.get<string>('AUTH0_DOMAIN')}/userinfo`,
-      {
-        headers: {
-          authorization: `Bearer ${accessToken}`,
+    try {
+      const response = await axios.get(
+        `https://${this.configService.get<string>('AUTH0_DOMAIN')}/userinfo`,
+        {
+          headers: {
+            authorization: `Bearer ${accessToken}`,
+          },
         },
-      },
-    );
-    const { email, nickname, sub, email_verified } = response.data;
-    const result = await this.userService.findByEmail(email);
-    let createdUser = null;
-    if (!result) {
-      createdUser = await this.userService.create({
-        username: nickname,
-        email: email,
-        city: '',
-        country: '',
-        password: '',
-        token: '',
-        sub: sub,
-        email_verified: email_verified,
-      });
+      );
+      const { email, nickname, sub, email_verified } = response.data;
+      const result = await this.userService.findByEmail(email);
+      if (result && result.email_verified !== email_verified) {
+        await this.userService.updateEmailVerify(email_verified, email);
+      }
+      let createdUser = null;
+      if (!result) {
+        createdUser = await this.userService.create({
+          username: nickname,
+          email: email,
+          city: '',
+          country: '',
+          password: '',
+          token: '',
+          sub: sub,
+          email_verified: email_verified,
+        });
+      }
+      request.user = {
+        _id: createdUser ? createdUser._id : result._id,
+        email,
+        email_verified,
+      };
+      return true;
+    } catch (err) {
+      console.log(err, 'ERROR');
     }
-    request.user = {
-      _id: createdUser ? createdUser._id : result._id,
-      email,
-    };
-    return true;
   }
 }

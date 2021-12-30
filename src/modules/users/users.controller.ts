@@ -7,6 +7,7 @@ import {
   Delete,
   UseGuards,
   Query,
+  Req,
   Post,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
@@ -22,6 +23,14 @@ import { AuthGuard } from '@nestjs/passport';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { query } from 'express';
 
+interface IUserRequest extends Request {
+  user: {
+    email: string;
+    _id: string;
+    email_verified: boolean;
+  };
+}
+
 @ApiTags('User')
 @ApiCookieAuth()
 @Controller('users')
@@ -36,6 +45,15 @@ export class UsersController {
   @Get('search')
   search(@Query('q') query: string) {
     return this.usersService.search(query);
+  }
+
+  @UseGuards(AuthenticatedGuard)
+  @Get('verify-email')
+  emailVerification(@Req() request: IUserRequest) {
+    const {
+      user: { email_verified },
+    } = request;
+    return email_verified;
   }
 
   @Get('followers')

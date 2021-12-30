@@ -31,6 +31,7 @@ interface IUserRequest extends Request {
   user: {
     email: string;
     _id: string;
+    email_verified: boolean;
   };
 }
 
@@ -52,7 +53,7 @@ export class AuthController {
 
   @Get('me')
   @UseGuards(AuthenticatedGuard)
-  getUser(@Req() request: IUserRequest) {
+  async getUser(@Req() request: IUserRequest) {
     const {
       user: { _id },
     } = request;
