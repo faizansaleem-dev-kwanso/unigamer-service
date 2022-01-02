@@ -43,11 +43,13 @@ export class AuthenticatedGuard extends AuthGuard('local') {
           email_verified: email_verified,
         });
       }
-      request.user = {
-        _id: createdUser ? createdUser._id : result._id,
-        email,
-        email_verified,
-      };
+      request.user = result
+        ? result
+        : {
+            _id: createdUser ? createdUser._id : result._id,
+            email,
+            email_verified,
+          };
       return true;
     } catch (err) {
       console.log(err, 'ERROR');

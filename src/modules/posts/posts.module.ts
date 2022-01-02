@@ -4,6 +4,7 @@ import { PostsController } from './posts.controller';
 import MongoPaging from 'mongoose-paginate-v2';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Post, PostSchema } from './entities/post.entity';
+import { UsersModule } from '../users/users.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { Post, PostSchema } from './entities/post.entity';
         },
       },
     ]),
+    UsersModule,
   ],
   controllers: [PostsController],
   providers: [PostsService],

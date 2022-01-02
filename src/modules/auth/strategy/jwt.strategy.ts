@@ -19,7 +19,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       }),
 
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(), // 1
-      audience: configService.get<string>('HOST'),
+      audience: configService.get<string>('AUTH0_AUDIENCE'),
       issuer: `https://${configService.get<string>('AUTH0_DOMAIN')}/`,
     });
   }
