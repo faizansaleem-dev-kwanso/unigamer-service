@@ -7,6 +7,7 @@ import {
   Notification,
   NotificationSchema,
 } from './entities/notification.entity';
+import { UsersModule } from '../users/users.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import {
         },
       },
     ]),
+    UsersModule,
   ],
   controllers: [NotificationsController],
   providers: [NotificationsService],
