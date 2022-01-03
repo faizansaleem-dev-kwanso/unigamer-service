@@ -4,7 +4,6 @@ import { CommentsController } from './comments.controller';
 import MongoPaging from 'mongoose-paginate-v2';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Comment, CommentSchema } from './entities/comment.entity';
-import { UsersModule } from '../users/users.module';
 
 @Module({
   imports: [
@@ -18,7 +17,6 @@ import { UsersModule } from '../users/users.module';
         },
       },
     ]),
-    UsersModule,
   ],
   controllers: [CommentsController],
   providers: [CommentsService],

@@ -4,7 +4,6 @@ import { ReviewsController } from './reviews.controller';
 import MongoPaging from 'mongoose-paginate-v2';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Review, ReviewSchema } from './entities/review.entity';
-import { UsersModule } from '../users/users.module';
 
 @Module({
   imports: [
@@ -18,7 +17,6 @@ import { UsersModule } from '../users/users.module';
         },
       },
     ]),
-    UsersModule,
   ],
   controllers: [ReviewsController],
   providers: [ReviewsService],

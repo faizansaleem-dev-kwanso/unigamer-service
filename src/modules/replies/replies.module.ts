@@ -4,7 +4,6 @@ import { RepliesController } from './replies.controller';
 import MongoPaging from 'mongoose-paginate-v2';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Reply, ReplySchema } from './entities/reply.entity';
-import { UsersModule } from '../users/users.module';
 
 @Module({
   imports: [
@@ -18,7 +17,6 @@ import { UsersModule } from '../users/users.module';
         },
       },
     ]),
-    UsersModule,
   ],
   controllers: [RepliesController],
   providers: [RepliesService],

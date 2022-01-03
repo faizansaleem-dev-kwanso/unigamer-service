@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { UsersController } from './users.controller';
 import { User, UserSchema } from './entities/user.entity';
@@ -8,6 +8,7 @@ import MongoAggregatePaginate from 'mongoose-aggregate-paginate-v2';
 import { MongooseModule } from '@nestjs/mongoose';
 import { FollowModule } from '../follows/follows.module';
 
+@Global()
 @Module({
   imports: [
     MongooseModule.forFeatureAsync([

@@ -1,10 +1,9 @@
-import { Module, forwardRef } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { FollowService } from './follows.service';
 import { FollowController } from './follows.controller';
 import MongoPaging from 'mongoose-paginate-v2';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Follow, FollowSchema } from './entities/follow.entity';
-import { UsersModule } from '../users/users.module';
 
 @Module({
   imports: [
@@ -18,7 +17,6 @@ import { UsersModule } from '../users/users.module';
         },
       },
     ]),
-    forwardRef(() => UsersModule),
   ],
   controllers: [FollowController],
   providers: [FollowService],
